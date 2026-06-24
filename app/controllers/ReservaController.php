@@ -19,80 +19,57 @@ class ReservaController {
     }
     
     /**
-     * Listar reservas de um usuário
+     * Listar minhas reservas
      */
-    public function listarPorUsuario($usuario_id) {
-        if (empty($usuario_id)) {
-            return [];
-        }
+    public function listarMinhas() {
+        $usuarioId = $_SESSION['usuario_id'];
+        $reservas = $this->reservaModel->listarPorUsuario($usuarioId);
         
-        return $this->reservaModel->listarPorUsuario($usuario_id);
+        $titulo = APP_NAME . ' - Minhas Reservas';
+        $view = __DIR__ . '/../views/reservas/minhas-reservas.php';
+        
+        require __DIR__ . '/../views/layout.php';
     }
     
     /**
-     * Listar reservas de uma carona
+     * Cancelar reserva (com validação de propriedade)
      */
-    public function listarPorCarona($carona_id) {
-        if (empty($carona_id)) {
-            return [];
+    public function cancelar() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ' . BASE_URL . 'minhas-reservas');
+            exit;
         }
         
-        return $this->reservaModel->listarPorCarona($carona_id);
-    }
-    
-    /**
-     * Criar nova reserva
-     */
-    public function criar($carona_id, $usuario_id) {
-        // Validações
-        if (empty($carona_id) || empty($usuario_id)) {
-            return ['sucesso' => false, 'mensagem' => 'Dados inválidos'];
-        }
+        $reservaId = $_POST['id'] ?? null;
+        $usuarioId = $_SESSION['usuario_id'];
         
-        // Verificar se carona existe e tem vagas
-        $carona = $this->caronaModel->buscarPorId($carona_id);
-        if (!$carona) {
-            return ['sucesso' => false, 'mensagem' => 'Carona não encontrada'];
-        }
-        
-        if ($carona['vagas_disponiveis'] <= 0) {
-            return ['sucesso' => false, 'mensagem' => 'Não há vagas disponíveis'];
-        }
-        
-        // Verificar se usuário já tem reserva para esta carona
-        if ($this->reservaModel->verificarReservaExistente($carona_id, $usuario_id)) {
-            return ['sucesso' => false, 'mensagem' => 'Você já tem uma reserva para esta carona'];
-        }
-        
-        // Criar reserva
-        $this->reservaModel->carona_id = $carona_id;
-        $this->reservaModel->usuario_id = $usuario_id;
-        
-        if ($this->reservaModel->criar()) {
-            // Reduzir vagas disponíveis
-            $this->caronaModel->reduzirVagas($carona_id, 1);
-            
-            return ['sucesso' => true, 'mensagem' => 'Reserva realizada com sucesso'];
-        } else {
-            return ['sucesso' => false, 'mensagem' => 'Erro ao criar reserva'];
-        }
-    }
-    
-    /**
-     * Cancelar reserva
-     */
-    public function cancelar($id) {
-        if (empty($id)) {
-            return ['sucesso' => false, 'mensagem' => 'ID da reserva inválido'];
+        if (!$reservaId) {
+            $_SESSION['mensagem'] = 'ID da reserva inválido';
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL . 'minhas-reservas');
+            exit;
         }
         
         // Obter detalhes da reserva
-        $reserva = $this->reservaModel->buscarPorId($id);
+        $reserva = $this->reservaModel->buscarPorId($reservaId);
+        
         if (!$reserva) {
-            return ['sucesso' => false, 'mensagem' => 'Reserva não encontrada'];
+            $_SESSION['mensagem'] = 'Reserva não encontrada';
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL . 'minhas-reservas');
+            exit;
         }
         
-        if ($this->reservaModel->cancelar($id)) {
+        // VALIDAÇÃO CRÍTICA: Verificar se a reserva pertence ao usuário logado
+        if ($reserva['usuario_id'] != $usuarioId) {
+            $_SESSION['mensagem'] = 'Você não tem permissão para cancelar esta reserva';
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL . 'minhas-reservas');
+            exit;
+        }
+        
+        // Cancelar reserva
+        if ($this->reservaModel->cancelar($reservaId)) {
             // Aumentar vagas disponíveis
             $query = "UPDATE caronas SET vagas_disponiveis = vagas_disponiveis + 1 WHERE id = ?";
             global $conn;
@@ -100,25 +77,77 @@ class ReservaController {
             $stmt->bind_param("i", $reserva['carona_id']);
             $stmt->execute();
             
-            return ['sucesso' => true, 'mensagem' => 'Reserva cancelada com sucesso'];
+            $_SESSION['mensagem'] = 'Reserva cancelada com sucesso';
+            $_SESSION['tipo_mensagem'] = 'success';
         } else {
-            return ['sucesso' => false, 'mensagem' => 'Erro ao cancelar reserva'];
+            $_SESSION['mensagem'] = 'Erro ao cancelar reserva';
+            $_SESSION['tipo_mensagem'] = 'danger';
         }
+        
+        header('Location: ' . BASE_URL . 'minhas-reservas');
+        exit;
     }
     
     /**
-     * Confirmar reserva
+     * Criar nova reserva
      */
-    public function confirmar($id) {
-        if (empty($id)) {
-            return ['sucesso' => false, 'mensagem' => 'ID da reserva inválido'];
+    public function criar() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ' . BASE_URL);
+            exit;
         }
         
-        if ($this->reservaModel->atualizarStatus($id, 'confirmada')) {
-            return ['sucesso' => true, 'mensagem' => 'Reserva confirmada com sucesso'];
-        } else {
-            return ['sucesso' => false, 'mensagem' => 'Erro ao confirmar reserva'];
+        $caronaId = $_POST['carona_id'] ?? null;
+        $usuarioId = $_SESSION['usuario_id'];
+        
+        if (!$caronaId) {
+            $_SESSION['mensagem'] = 'ID da carona inválido';
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL);
+            exit;
         }
+        
+        // Verificar se carona existe e tem vagas
+        $carona = $this->caronaModel->buscarPorId($caronaId);
+        if (!$carona) {
+            $_SESSION['mensagem'] = 'Carona não encontrada';
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL);
+            exit;
+        }
+        
+        if ($carona['vagas_disponiveis'] <= 0) {
+            $_SESSION['mensagem'] = 'Não há vagas disponíveis';
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL . 'detalhes-carona?id=' . $caronaId);
+            exit;
+        }
+        
+        // Verificar se usuário já tem reserva para esta carona
+        if ($this->reservaModel->verificarReservaExistente($caronaId, $usuarioId)) {
+            $_SESSION['mensagem'] = 'Você já tem uma reserva para esta carona';
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL . 'detalhes-carona?id=' . $caronaId);
+            exit;
+        }
+        
+        // Criar reserva
+        $this->reservaModel->carona_id = $caronaId;
+        $this->reservaModel->usuario_id = $usuarioId;
+        
+        if ($this->reservaModel->criar()) {
+            // Reduzir vagas disponíveis
+            $this->caronaModel->reduzirVagas($caronaId, 1);
+            
+            $_SESSION['mensagem'] = 'Reserva realizada com sucesso!';
+            $_SESSION['tipo_mensagem'] = 'success';
+            header('Location: ' . BASE_URL . 'minhas-reservas');
+        } else {
+            $_SESSION['mensagem'] = 'Erro ao criar reserva';
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL . 'detalhes-carona?id=' . $caronaId);
+        }
+        exit;
     }
 }
 ?>

@@ -6,119 +6,163 @@
 
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../models/Carona.php';
+require_once __DIR__ . '/../models/User.php';
 
 class CaronaController {
     private $caronaModel;
+    private $userModel;
     
     public function __construct() {
         global $conn;
         $this->caronaModel = new Carona($conn);
+        $this->userModel = new User($conn);
     }
     
     /**
-     * Listar todas as caronas disponíveis
+     * Listar caronas na página principal
      */
-    public function listar() {
-        return $this->caronaModel->listar();
+    public function listarPrincipal() {
+        $caronas = $this->caronaModel->listar();
+        $usuarioAutenticado = isset($_SESSION['usuario_id']);
+        
+        $titulo = APP_NAME . ' - Encontre Caronas';
+        $view = __DIR__ . '/../views/caronas/index.php';
+        
+        require __DIR__ . '/../views/layout.php';
     }
     
     /**
-     * Buscar caronas por origem e destino
+     * Buscar caronas por origem/destino
      */
-    public function buscar($origem, $destino) {
-        if (empty($origem) && empty($destino)) {
-            return $this->listar();
+    public function buscar() {
+        $origem = $_GET['origem'] ?? '';
+        $destino = $_GET['destino'] ?? '';
+        
+        if (!empty($origem) || !empty($destino)) {
+            $caronas = $this->caronaModel->buscar($origem, $destino);
+        } else {
+            $caronas = $this->caronaModel->listar();
         }
         
-        return $this->caronaModel->buscar($origem, $destino);
+        $usuarioAutenticado = isset($_SESSION['usuario_id']);
+        
+        $titulo = APP_NAME . ' - Buscar Caronas';
+        $view = __DIR__ . '/../views/caronas/buscar.php';
+        
+        require __DIR__ . '/../views/layout.php';
     }
     
     /**
-     * Obter detalhes de uma carona
+     * Mostrar detalhes de uma carona
      */
-    public function obterDetalhes($id) {
-        if (empty($id) || !is_numeric($id)) {
-            return null;
+    public function detalhes() {
+        $caronaId = $_GET['id'] ?? null;
+        
+        if (!$caronaId) {
+            header('Location: ' . BASE_URL);
+            exit;
         }
         
-        return $this->caronaModel->buscarPorId($id);
+        $carona = $this->caronaModel->buscarPorId($caronaId);
+        
+        if (!$carona) {
+            header('Location: ' . BASE_URL);
+            exit;
+        }
+        
+        $usuarioAutenticado = isset($_SESSION['usuario_id']);
+        
+        $titulo = APP_NAME . ' - Detalhes da Carona';
+        $view = __DIR__ . '/../views/caronas/detalhes.php';
+        
+        require __DIR__ . '/../views/layout.php';
+    }
+    
+    /**
+     * Mostrar formulário de oferta de carona
+     */
+    public function mostrarFormulario() {
+        $titulo = APP_NAME . ' - Oferecer Carona';
+        $view = __DIR__ . '/../views/caronas/oferecer.php';
+        
+        require __DIR__ . '/../views/layout.php';
     }
     
     /**
      * Criar nova carona
      */
-    public function criar($usuario_id, $origem, $destino, $data_saida, $hora_saida, $vagas, $descricao) {
+    public function criar() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ' . BASE_URL . 'oferecer-carona');
+            exit;
+        }
+        
+        $origem = $_POST['origem'] ?? '';
+        $destino = $_POST['destino'] ?? '';
+        $data_saida = $_POST['data_saida'] ?? '';
+        $hora_saida = $_POST['hora_saida'] ?? '';
+        $vagas = $_POST['vagas'] ?? 1;
+        $descricao = $_POST['descricao'] ?? '';
+        
         // Validações
-        if (empty($usuario_id) || empty($origem) || empty($destino) || empty($data_saida) || empty($hora_saida) || empty($vagas)) {
-            return ['sucesso' => false, 'mensagem' => 'Todos os campos são obrigatórios'];
+        if (empty($origem) || empty($destino) || empty($data_saida) || empty($hora_saida)) {
+            $_SESSION['mensagem'] = 'Todos os campos obrigatórios devem ser preenchidos';
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL . 'oferecer-carona');
+            exit;
         }
         
+        // Validar data (não pode ser retroativa)
+        $dataAtual = new DateTime();
+        $dataSaida = DateTime::createFromFormat('Y-m-d', $data_saida);
+        
+        if ($dataSaida < $dataAtual) {
+            $_SESSION['mensagem'] = 'A data não pode ser no passado';
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL . 'oferecer-carona');
+            exit;
+        }
+        
+        // Validar vagas
         if ($vagas < 1 || $vagas > 10) {
-            return ['sucesso' => false, 'mensagem' => 'Número de vagas inválido'];
-        }
-        
-        // Validar data
-        $data_obj = DateTime::createFromFormat('Y-m-d', $data_saida);
-        if (!$data_obj || $data_obj->format('Y-m-d') !== $data_saida) {
-            return ['sucesso' => false, 'mensagem' => 'Data inválida'];
-        }
-        
-        if ($data_obj < new DateTime()) {
-            return ['sucesso' => false, 'mensagem' => 'A data da carona não pode ser no passado'];
+            $_SESSION['mensagem'] = 'O número de vagas deve estar entre 1 e 10';
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL . 'oferecer-carona');
+            exit;
         }
         
         // Criar carona
-        $this->caronaModel->usuario_id = $usuario_id;
         $this->caronaModel->origem = $origem;
         $this->caronaModel->destino = $destino;
         $this->caronaModel->data_saida = $data_saida;
         $this->caronaModel->hora_saida = $hora_saida;
         $this->caronaModel->vagas_disponiveis = $vagas;
         $this->caronaModel->descricao = $descricao;
+        $this->caronaModel->usuario_id = $_SESSION['usuario_id'];
         
         if ($this->caronaModel->criar()) {
-            return ['sucesso' => true, 'mensagem' => 'Carona criada com sucesso'];
+            $_SESSION['mensagem'] = 'Carona criada com sucesso!';
+            $_SESSION['tipo_mensagem'] = 'success';
+            header('Location: ' . BASE_URL);
         } else {
-            return ['sucesso' => false, 'mensagem' => 'Erro ao criar carona'];
+            $_SESSION['mensagem'] = 'Erro ao criar carona';
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL . 'oferecer-carona');
         }
+        exit;
     }
     
     /**
-     * Atualizar carona
+     * Listar caronas do usuário
      */
-    public function atualizar($id, $origem, $destino, $data_saida, $hora_saida, $vagas, $descricao) {
-        if (empty($id)) {
-            return ['sucesso' => false, 'mensagem' => 'ID da carona inválido'];
-        }
+    public function listarMinhas() {
+        $usuarioId = $_SESSION['usuario_id'];
+        $caronas = $this->caronaModel->listarPorUsuario($usuarioId);
         
-        $this->caronaModel->id = $id;
-        $this->caronaModel->origem = $origem;
-        $this->caronaModel->destino = $destino;
-        $this->caronaModel->data_saida = $data_saida;
-        $this->caronaModel->hora_saida = $hora_saida;
-        $this->caronaModel->vagas_disponiveis = $vagas;
-        $this->caronaModel->descricao = $descricao;
+        $titulo = APP_NAME . ' - Minhas Caronas';
+        $view = __DIR__ . '/../views/caronas/minhas-caronas.php';
         
-        if ($this->caronaModel->atualizar()) {
-            return ['sucesso' => true, 'mensagem' => 'Carona atualizada com sucesso'];
-        } else {
-            return ['sucesso' => false, 'mensagem' => 'Erro ao atualizar carona'];
-        }
-    }
-    
-    /**
-     * Deletar carona
-     */
-    public function deletar($id) {
-        if (empty($id)) {
-            return ['sucesso' => false, 'mensagem' => 'ID da carona inválido'];
-        }
-        
-        if ($this->caronaModel->deletar($id)) {
-            return ['sucesso' => true, 'mensagem' => 'Carona deletada com sucesso'];
-        } else {
-            return ['sucesso' => false, 'mensagem' => 'Erro ao deletar carona'];
-        }
+        require __DIR__ . '/../views/layout.php';
     }
 }
 ?>

@@ -16,9 +16,120 @@ class UserController {
     }
     
     /**
+     * Mostrar página de login
+     */
+    public function mostrarLogin() {
+        if (isset($_SESSION['usuario_id'])) {
+            header('Location: ' . BASE_URL);
+            exit;
+        }
+        
+        $titulo = APP_NAME . ' - Login';
+        $view = __DIR__ . '/../views/auth/login.php';
+        
+        require __DIR__ . '/../views/layout.php';
+    }
+    
+    /**
+     * Processar login
+     */
+    public function processarLogin() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ' . BASE_URL . 'login');
+            exit;
+        }
+        
+        $email = $_POST['email'] ?? '';
+        $senha = $_POST['senha'] ?? '';
+        
+        $resultado = $this->login($email, $senha);
+        
+        if ($resultado['sucesso']) {
+            $_SESSION['mensagem'] = $resultado['mensagem'];
+            $_SESSION['tipo_mensagem'] = 'success';
+            header('Location: ' . BASE_URL);
+        } else {
+            $_SESSION['mensagem'] = $resultado['mensagem'];
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL . 'login');
+        }
+        exit;
+    }
+    
+    /**
+     * Mostrar página de registro
+     */
+    public function mostrarRegistro() {
+        if (isset($_SESSION['usuario_id'])) {
+            header('Location: ' . BASE_URL);
+            exit;
+        }
+        
+        $titulo = APP_NAME . ' - Registrar';
+        $view = __DIR__ . '/../views/auth/registro.php';
+        
+        require __DIR__ . '/../views/layout.php';
+    }
+    
+    /**
+     * Processar registro
+     */
+    public function processarRegistro() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ' . BASE_URL . 'registro');
+            exit;
+        }
+        
+        $nome = $_POST['nome'] ?? '';
+        $email = $_POST['email'] ?? '';
+        $telefone = $_POST['telefone'] ?? '';
+        $senha = $_POST['senha'] ?? '';
+        $confirmaSenha = $_POST['confirma_senha'] ?? '';
+        
+        $resultado = $this->registrar($nome, $email, $telefone, $senha, $confirmaSenha);
+        
+        if ($resultado['sucesso']) {
+            $_SESSION['mensagem'] = 'Registrado com sucesso! Faça login para continuar.';
+            $_SESSION['tipo_mensagem'] = 'success';
+            header('Location: ' . BASE_URL . 'login');
+        } else {
+            $_SESSION['mensagem'] = $resultado['mensagem'];
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL . 'registro');
+        }
+        exit;
+    }
+    
+    /**
+     * Logout
+     */
+    public function logout() {
+        session_destroy();
+        header('Location: ' . BASE_URL);
+        exit;
+    }
+    
+    /**
+     * Mostrar perfil do usuário
+     */
+    public function mostrarPerfil() {
+        $usuario = $this->obterUsuarioAutenticado();
+        
+        if (!$usuario) {
+            header('Location: ' . BASE_URL . 'login');
+            exit;
+        }
+        
+        $titulo = APP_NAME . ' - Meu Perfil';
+        $view = __DIR__ . '/../views/auth/perfil.php';
+        
+        require __DIR__ . '/../views/layout.php';
+    }
+    
+    /**
      * Registrar novo usuário
      */
-    public function registrar($nome, $email, $telefone, $senha, $confirmaSenha) {
+    private function registrar($nome, $email, $telefone, $senha, $confirmaSenha) {
         // Validações
         if (empty($nome) || empty($email) || empty($telefone) || empty($senha)) {
             return ['sucesso' => false, 'mensagem' => 'Todos os campos são obrigatórios'];
@@ -53,7 +164,7 @@ class UserController {
     /**
      * Fazer login
      */
-    public function login($email, $senha) {
+    private function login($email, $senha) {
         if (empty($email) || empty($senha)) {
             return ['sucesso' => false, 'mensagem' => 'Email e senha são obrigatórios'];
         }
@@ -77,29 +188,14 @@ class UserController {
     }
     
     /**
-     * Fazer logout
-     */
-    public function logout() {
-        session_destroy();
-        return ['sucesso' => true, 'mensagem' => 'Logout realizado com sucesso'];
-    }
-    
-    /**
      * Obter dados do usuário autenticado
      */
-    public function obterUsuarioAutenticado() {
+    private function obterUsuarioAutenticado() {
         if (!isset($_SESSION['usuario_id'])) {
             return null;
         }
         
         return $this->userModel->buscarPorId($_SESSION['usuario_id']);
-    }
-    
-    /**
-     * Verificar se usuário está autenticado
-     */
-    public function estaAutenticado() {
-        return isset($_SESSION['usuario_id']);
     }
 }
 ?>
