@@ -1,0 +1,37 @@
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.*.local
+
+# Dependências
+vendor/
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# Cache
+*.cache
+.cache/
+
+# Arquivos temporários
+tmp/
+temp/
+*.tmp
+
+# Configurações locais
+config/database.local.php
