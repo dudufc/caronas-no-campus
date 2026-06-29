@@ -5,7 +5,7 @@
         <p class="lead mb-4">Compartilhe caronas com outros alunos e economize combustível</p>
         
         <!-- Formulário de Busca -->
-        <form method="GET" action="<?php echo BASE_URL; ?>buscar" class="row g-3">
+        <form method="GET" action="<?php echo BASE_URL; ?>/buscar" class="row g-3">
             <div class="col-md-4">
                 <input type="text" class="form-control" name="origem" placeholder="De onde?" value="<?php echo htmlspecialchars($_GET['origem'] ?? ''); ?>">
             </div>
@@ -53,9 +53,9 @@
                             </div>
                             <div class="card-footer bg-white">
                                 <?php if ($usuarioAutenticado): ?>
-                                    <a href="<?php echo BASE_URL; ?>detalhes-carona?id=<?php echo $carona['id']; ?>" class="btn btn-sm btn-primary">Ver Detalhes</a>
+                                    <a href="<?php echo BASE_URL; ?>/detalhes-carona&id=<?php echo $carona['id']; ?>" class="btn btn-sm btn-primary">Ver Detalhes</a>
                                 <?php else: ?>
-                                    <a href="<?php echo BASE_URL; ?>login" class="btn btn-sm btn-primary">Fazer Login</a>
+                                    <a href="<?php echo BASE_URL; ?>/login" class="btn btn-sm btn-primary">Fazer Login</a>
                                 <?php endif; ?>
                             </div>
                         </div>

@@ -24,7 +24,7 @@
                     <hr class="my-4">
                     
                     <p class="text-center">
-                        Não tem conta? <a href="<?php echo BASE_URL; ?>registro">Registre-se aqui</a>
+                        Não tem conta? <a href="<?php echo BASE_URL; ?>/registro">Registre-se aqui</a>
                     </p>
                 </div>
             </div>

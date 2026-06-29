@@ -6,9 +6,6 @@
 
 class Router {
     private $routes = [];
-    private $controller;
-    private $action;
-    private $params = [];
     
     public function __construct() {
         $this->defineRoutes();
@@ -32,6 +29,7 @@ class Router {
         $this->routes['POST']['/oferecer-carona'] = ['controller' => 'CaronaController', 'action' => 'criar', 'auth' => true];
         $this->routes['GET']['/minhas-reservas'] = ['controller' => 'ReservaController', 'action' => 'listarMinhas', 'auth' => true];
         $this->routes['POST']['/cancelar-reserva'] = ['controller' => 'ReservaController', 'action' => 'cancelar', 'auth' => true];
+        $this->routes['POST']['/criar-reserva'] = ['controller' => 'ReservaController', 'action' => 'criar', 'auth' => true];
         $this->routes['GET']['/logout'] = ['controller' => 'UserController', 'action' => 'logout', 'auth' => true];
         $this->routes['GET']['/perfil'] = ['controller' => 'UserController', 'action' => 'mostrarPerfil', 'auth' => true];
     }
@@ -41,12 +39,15 @@ class Router {
      */
     public function processar() {
         $metodo = $_SERVER['REQUEST_METHOD'];
-        $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        
+        // Suporte para rotas via parâmetro 'url' ou via PATH_INFO
+        $uri = $_GET['url'] ?? parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         $uri = str_replace('/caronas-no-campus/public', '', $uri);
         
-        if (empty($uri) || $uri === '/') {
-            $uri = '/';
-        }
+        // Limpar a URI para garantir que comece com / e não termine com /
+        $uri = '/' . trim($uri, '/');
+        
+        if ($uri === '//') $uri = '/';
         
         // Buscar rota correspondente
         if (isset($this->routes[$metodo][$uri])) {
@@ -54,19 +55,22 @@ class Router {
             
             // Verificar autenticação
             if (isset($rota['auth']) && $rota['auth']) {
-                require_once __DIR__ . '/../config/config.php';
                 if (!isset($_SESSION['usuario_id'])) {
-                    header('Location: /caronas-no-campus/public/login');
+                    header('Location: ' . BASE_URL . 'login');
                     exit;
                 }
             }
             
-            // Carregar controller e executar action
             $this->executarRota($rota);
         } else {
-            http_response_code(404);
-            echo "Página não encontrada";
-            exit;
+            // Se não encontrar, tenta a rota raiz ou 404
+            if ($uri === '/') {
+                $this->executarRota($this->routes['GET']['/']);
+            } else {
+                http_response_code(404);
+                echo "Página não encontrada: " . htmlspecialchars($uri);
+                exit;
+            }
         }
     }
     
@@ -79,22 +83,15 @@ class Router {
         
         $caminhoController = __DIR__ . '/controllers/' . $controller . '.php';
         
-        if (!file_exists($caminhoController)) {
+        if (file_exists($caminhoController)) {
+            require_once $caminhoController;
+            $instancia = new $controller();
+            $instancia->$action();
+        } else {
             http_response_code(500);
-            echo "Controller não encontrado: $controller";
-            exit;
+            echo "Erro interno: Controller não encontrado.";
         }
-        
-        require_once $caminhoController;
-        $instancia = new $controller();
-        
-        if (!method_exists($instancia, $action)) {
-            http_response_code(500);
-            echo "Action não encontrada: $action";
-            exit;
-        }
-        
-        $instancia->$action();
+        exit;
     }
 }
 ?>

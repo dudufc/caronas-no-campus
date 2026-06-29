@@ -39,7 +39,7 @@
                     <hr class="my-4">
                     
                     <p class="text-center">
-                        Já tem conta? <a href="<?php echo BASE_URL; ?>login">Faça login aqui</a>
+                        Já tem conta? <a href="<?php echo BASE_URL; ?>/login">Faça login aqui</a>
                     </p>
                 </div>
             </div>

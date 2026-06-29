@@ -1,7 +1,6 @@
 <?php
 /**
  * Template Base da Aplicação
- * Usado por todas as views para manter consistência
  */
 ?>
 <!DOCTYPE html>
@@ -12,13 +11,13 @@
     <title><?php echo $titulo ?? APP_NAME; ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>css/style.css">
+    <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>css/style.css">
 </head>
 <body>
     <!-- Navegação -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="<?php echo BASE_URL; ?>">
+            <a class="navbar-brand" href="<?php echo BASE_URL; ?>/">
                 <i class="bi bi-car-front"></i> <?php echo APP_NAME; ?>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -28,23 +27,23 @@
                 <ul class="navbar-nav ms-auto">
                     <?php if (isset($_SESSION['usuario_id'])): ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>oferecer-carona">Oferecer Carona</a>
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>/oferecer-carona">Oferecer Carona</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>minhas-reservas">Minhas Reservas</a>
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>/minhas-reservas">Minhas Reservas</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>perfil">Perfil</a>
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>/perfil">Perfil</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>logout">Sair</a>
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>/logout">Sair</a>
                         </li>
                     <?php else: ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>login">Login</a>
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>/login">Login</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>registro">Registrar</a>
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>/registro">Registrar</a>
                         </li>
                     <?php endif; ?>
                 </ul>
@@ -66,12 +65,10 @@
         ?>
     <?php endif; ?>
 
-    <!-- Conteúdo Principal -->
     <main>
         <?php include $view; ?>
     </main>
 
-    <!-- Footer -->
     <footer class="bg-dark text-white py-4 mt-5">
         <div class="container text-center">
             <p>&copy; 2026 <?php echo APP_NAME; ?>. Todos os direitos reservados.</p>

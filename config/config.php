@@ -9,7 +9,12 @@ date_default_timezone_set('America/Sao_Paulo');
 // Definir constantes da aplicação
 define('APP_NAME', 'Caronas no Campus');
 define('APP_VERSION', '1.0.0');
-define('BASE_URL', 'http://localhost/caronas-no-campus/public/');
+
+// Detectar a URL base dinamicamente para evitar problemas no Laragon
+$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+define('BASE_URL', $protocol . "://" . $host . "/caronas-no-campus/public/index.php?url=");
+define('ASSETS_URL', $protocol . "://" . $host . "/caronas-no-campus/public/");
 
 // Configurações de segurança
 define('SESSION_TIMEOUT', 3600); // 1 hora em segundos
