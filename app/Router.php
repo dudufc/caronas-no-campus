@@ -40,14 +40,14 @@ class Router {
     public function processar() {
         $metodo = $_SERVER['REQUEST_METHOD'];
         
-        // Suporte para rotas via parâmetro 'url' ou via PATH_INFO
-        $uri = $_GET['url'] ?? parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        $uri = str_replace('/caronas-no-campus/public', '', $uri);
+        // Obter a URI do parâmetro 'url'
+        $uri = $_GET['url'] ?? '/';
         
-        // Limpar a URI para garantir que comece com / e não termine com /
+        // Limpar a URI: garantir que comece com / e remover o index.php se ele vier por engano
         $uri = '/' . trim($uri, '/');
-        
-        if ($uri === '//') $uri = '/';
+        if ($uri === '/index.php' || empty($uri)) {
+            $uri = '/';
+        }
         
         // Buscar rota correspondente
         if (isset($this->routes[$metodo][$uri])) {
@@ -56,21 +56,15 @@ class Router {
             // Verificar autenticação
             if (isset($rota['auth']) && $rota['auth']) {
                 if (!isset($_SESSION['usuario_id'])) {
-                    header('Location: ' . BASE_URL . 'login');
+                    header('Location: ' . BASE_URL . '/login');
                     exit;
                 }
             }
             
             $this->executarRota($rota);
         } else {
-            // Se não encontrar, tenta a rota raiz ou 404
-            if ($uri === '/') {
-                $this->executarRota($this->routes['GET']['/']);
-            } else {
-                http_response_code(404);
-                echo "Página não encontrada: " . htmlspecialchars($uri);
-                exit;
-            }
+            // Fallback para a página inicial se a URI for inválida ou vazia
+            $this->executarRota($this->routes['GET']['/']);
         }
     }
     
