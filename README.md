@@ -1,25 +1,29 @@
 # Caronas no Campus
 
-## Descrição
+Aplicação web desenvolvida em PHP que facilita o compartilhamento de caronas entre alunos do campus. O objetivo é conectar estudantes que precisam se deslocar, reduzindo custos com combustível e promovendo a sustentabilidade.
 
-**Caronas no Campus** é uma aplicação web desenvolvida em PHP que facilita o compartilhamento de caronas entre alunos do campus. O objetivo é conectar estudantes que precisam se deslocar, reduzindo custos com combustível e promovendo a sustentabilidade.
+---
 
-## Funcionalidades Principais
+## Funcionalidades
 
-- **Cadastro e Autenticação**: Registro de novos usuários e sistema de login seguro
-- **Oferta de Caronas**: Usuários podem oferecer caronas especificando origem, destino, data, hora e número de vagas
-- **Busca de Caronas**: Busca por origem e destino para encontrar caronas disponíveis
-- **Reserva de Caronas**: Passageiros podem reservar vagas em caronas oferecidas
-- **Gerenciamento de Reservas**: Visualizar e cancelar reservas realizadas
-- **Perfil de Usuário**: Visualizar e atualizar informações pessoais
+- **Cadastro e Autenticação** — Registro de novos usuários e login seguro
+- **Oferta de Caronas** — Especifique origem, destino, data, hora e número de vagas
+- **Busca de Caronas** — Encontre caronas disponíveis por origem e destino
+- **Reserva de Caronas** — Reserve vagas em caronas oferecidas por outros alunos
+- **Gerenciamento de Reservas** — Visualize e cancele suas reservas
+- **Perfil de Usuário** — Visualize e atualize suas informações pessoais
 
-## Tecnologias Utilizadas
+---
 
-- **Backend**: PHP 7.4+
-- **Banco de Dados**: MySQL 5.7+
-- **Frontend**: HTML5, CSS3, Bootstrap 5
-- **JavaScript**: Vanilla JS para interações
-- **Padrão Arquitetural**: MVC (Model-View-Controller)
+## Tecnologias
+
+- **Backend:** PHP 7.4+
+- **Banco de Dados:** MySQL 5.7+
+- **Frontend:** HTML5, CSS3, Bootstrap 5
+- **JavaScript:** Vanilla JS
+- **Arquitetura:** MVC (Model-View-Controller)
+
+---
 
 ## Estrutura do Projeto
 
@@ -55,32 +59,33 @@ caronas-no-campus/
 └── .gitignore
 ```
 
-## Requisitos de Sistema
+---
+
+## Requisitos
 
 - PHP 7.4 ou superior
 - MySQL 5.7 ou superior
-- Servidor web (Apache, Nginx, etc.)
-- Navegador moderno (Chrome, Firefox, Safari, Edge)
+- Servidor web (Apache, Nginx ou PHP built-in server)
+- Navegador moderno
+
+---
 
 ## Instalação
 
-### 1. Clonar o Repositório
-
+**1. Clonar o repositório**
 ```bash
 git clone https://github.com/dudufc/caronas-no-campus.git
 cd caronas-no-campus
 ```
 
-### 2. Criar o Banco de Dados
-
+**2. Criar o banco de dados**
 ```bash
 mysql -u root -p < database/schema.sql
 ```
 
-### 3. Configurar o Banco de Dados
+**3. Configurar as credenciais**
 
-Editar `config/database.php` com suas credenciais:
-
+Edite `config/database.php`:
 ```php
 define('DB_HOST', 'localhost');
 define('DB_USER', 'seu_usuario');
@@ -88,73 +93,53 @@ define('DB_PASSWORD', 'sua_senha');
 define('DB_NAME', 'caronas_campus');
 ```
 
-### 4. Iniciar o Servidor
-
-```bash
-php -S localhost:8000 -t public/
-```
-
-Acesse a aplicação em `http://localhost:8000`
-
-## Uso
-
-### Registrar Novo Usuário
-
-1. Clique em "Registrar" na página inicial
-2. Preencha os dados: nome, email, telefone e senha
-3. Clique em "Registrar"
-
-### Fazer Login
-
-1. Clique em "Login"
-2. Insira email e senha
-3. Clique em "Entrar"
-
-### Oferecer uma Carona
-
-1. Estando logado, clique em "Oferecer Carona"
-2. Preencha os dados: origem, destino, data, hora e número de vagas
-3. Clique em "Oferecer Carona"
-
-### Buscar Caronas
-
-1. Na página inicial, preencha origem e destino
-2. Clique em "Buscar Caronas"
-3. Selecione uma carona e clique em "Ver Detalhes"
-4. Clique em "Reservar" para fazer a reserva
-
-### Gerenciar Reservas
-
-1. Clique em "Minhas Reservas"
-2. Visualize todas as suas reservas
-3. Cancele uma reserva se necessário
-
-## Segurança
-
-- Senhas são criptografadas com bcrypt
-- Prepared statements para prevenir SQL injection
-- Validação de entrada em todos os formulários
-- Sessões seguras para autenticação
-
-## Commits Realizados
-
-1. **Estrutura Inicial do Projeto** - Criação da estrutura MVC e arquivos de configuração
-2. **Implementação do Banco de Dados** - Script SQL com tabelas de usuários, caronas e reservas
-3. **Desenvolvimento das Funcionalidades Principais** - Controllers e models para gerenciamento de caronas e reservas
-4. **Finalização e Interface** - Views com Bootstrap, CSS e documentação
-
-## Autor
-
-Eduardo França - Aluno IFRS Ibirubá
-
-## Licença
-
-Este projeto está sob a licença MIT.
-
-## Contato
-
-Para dúvidas ou sugestões, entre em contato através do email: dudufc@example.com
+**4. Iniciar o servidor**
 
 ---
 
-**Última atualização**: 24 de junho de 2026
+## Uso
+
+**Registrar usuário**
+1. Clique em "Registrar"
+2. Preencha nome, email, telefone e senha
+3. Clique em "Registrar"
+
+**Login**
+1. Clique em "Login"
+2. Insira email e senha
+
+**Oferecer carona**
+1. Clique em "Oferecer Carona"
+2. Preencha origem, destino, data, hora e vagas
+3. Clique em "Oferecer Carona"
+
+**Buscar e reservar**
+1. Na página inicial, preencha origem e destino
+2. Clique em "Buscar Caronas"
+3. Selecione uma carona → "Ver Detalhes" → "Reservar"
+
+**Gerenciar reservas**
+1. Clique em "Minhas Reservas"
+2. Visualize ou cancele reservas
+
+---
+
+## Segurança
+
+- Senhas criptografadas com bcrypt
+- Prepared statements para prevenção de SQL injection
+- Validação de entrada em todos os formulários
+- Sessões seguras para autenticação
+
+---
+
+## Autores
+
+| Nome | Instituição |
+|------|-------------|
+| Eduardo França | IFRS — Ibirubá |
+| Samuel Tomassoni | IFRS — Ibirubá |
+
+---
+
+*Projeto desenvolvido para a disciplina de LP IV — IFRS Ibirubá*
