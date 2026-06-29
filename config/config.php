@@ -18,4 +18,9 @@ define('SESSION_TIMEOUT', 3600); // 1 hora em segundos
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+// Carregar conexão com o banco de dados
+if (file_exists(__DIR__ . '/database.php')) {
+    require_once __DIR__ . '/database.php';
+}
 ?>
