@@ -1,16 +1,12 @@
 <?php
-/**
- * Controlador de Caronas
- * Responsável por gerenciar ações relacionadas a caronas
- */
 
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../models/Carona.php';
 require_once __DIR__ . '/../models/User.php';
 
 class CaronaController {
-    private $caronaModel;
-    private $userModel;
+    private Carona $caronaModel;
+    private User $userModel;
     
     public function __construct() {
         global $conn;
@@ -18,10 +14,8 @@ class CaronaController {
         $this->userModel = new User($conn);
     }
     
-    /**
-     * Listar caronas na página principal
-     */
-    public function listarPrincipal() {
+    
+    public function listarPrincipal(): void {
         $caronas = $this->caronaModel->listar();
         $usuarioAutenticado = isset($_SESSION['usuario_id']);
         
@@ -31,12 +25,11 @@ class CaronaController {
         require __DIR__ . '/../views/layout.php';
     }
     
-    /**
-     * Buscar caronas por origem/destino
-     */
-    public function buscar() {
-        $origem = $_GET['origem'] ?? '';
-        $destino = $_GET['destino'] ?? '';
+   
+    public function buscar(): void {
+        // Sanitização básica de entrada
+        $origem = isset($_GET['origem']) ? htmlspecialchars(trim($_GET['origem'])) : '';
+        $destino = isset($_GET['destino']) ? htmlspecialchars(trim($_GET['destino'])) : '';
         
         if (!empty($origem) || !empty($destino)) {
             $caronas = $this->caronaModel->buscar($origem, $destino);
@@ -52,11 +45,9 @@ class CaronaController {
         require __DIR__ . '/../views/layout.php';
     }
     
-    /**
-     * Mostrar detalhes de uma carona
-     */
-    public function detalhes() {
-        $caronaId = $_GET['id'] ?? null;
+  /
+    public function detalhes(): void {
+        $caronaId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
         
         if (!$caronaId) {
             header('Location: ' . BASE_URL);
@@ -78,33 +69,29 @@ class CaronaController {
         require __DIR__ . '/../views/layout.php';
     }
     
-    /**
-     * Mostrar formulário de oferta de carona
-     */
-    public function mostrarFormulario() {
+  
+    public function mostrarFormulario(): void {
         $titulo = APP_NAME . ' - Oferecer Carona';
         $view = __DIR__ . '/../views/caronas/oferecer.php';
         
         require __DIR__ . '/../views/layout.php';
     }
     
-    /**
-     * Criar nova carona
-     */
-    public function criar() {
+ 
+    public function criar(): void {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: ' . BASE_URL . 'oferecer-carona');
             exit;
         }
         
-        $origem = $_POST['origem'] ?? '';
-        $destino = $_POST['destino'] ?? '';
+        $origem = isset($_POST['origem']) ? htmlspecialchars(trim($_POST['origem'])) : '';
+        $destino = isset($_POST['destino']) ? htmlspecialchars(trim($_POST['destino'])) : '';
         $data_saida = $_POST['data_saida'] ?? '';
         $hora_saida = $_POST['hora_saida'] ?? '';
-        $vagas = $_POST['vagas'] ?? 1;
-        $descricao = $_POST['descricao'] ?? '';
+        $vagas = filter_input(INPUT_POST, 'vagas', FILTER_VALIDATE_INT) ?: 1;
+        $descricao = isset($_POST['descricao']) ? htmlspecialchars(trim($_POST['descricao'])) : '';
         
-        // Validações
+        // Validações de campos vazios
         if (empty($origem) || empty($destino) || empty($data_saida) || empty($hora_saida)) {
             $_SESSION['mensagem'] = 'Todos os campos obrigatórios devem ser preenchidos';
             $_SESSION['tipo_mensagem'] = 'danger';
@@ -112,9 +99,19 @@ class CaronaController {
             exit;
         }
         
-        // Validar data (não pode ser retroativa)
+        // Validar formato e data retroativa com prevenção de erro fatal
         $dataAtual = new DateTime();
+        $dataAtual->setTime(0, 0, 0); // Zera a hora para comparar apenas o dia
         $dataSaida = DateTime::createFromFormat('Y-m-d', $data_saida);
+        
+        if (!$dataSaida) {
+            $_SESSION['mensagem'] = 'Formato de data inválido';
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL . 'oferecer-carona');
+            exit;
+        }
+        
+        $dataSaida->setTime(0, 0, 0);
         
         if ($dataSaida < $dataAtual) {
             $_SESSION['mensagem'] = 'A data não pode ser no passado';
@@ -123,7 +120,6 @@ class CaronaController {
             exit;
         }
         
-        // Validar vagas
         if ($vagas < 1 || $vagas > 10) {
             $_SESSION['mensagem'] = 'O número de vagas deve estar entre 1 e 10';
             $_SESSION['tipo_mensagem'] = 'danger';
@@ -131,7 +127,6 @@ class CaronaController {
             exit;
         }
         
-        // Criar carona
         $this->caronaModel->origem = $origem;
         $this->caronaModel->destino = $destino;
         $this->caronaModel->data_saida = $data_saida;
@@ -152,10 +147,8 @@ class CaronaController {
         exit;
     }
     
-    /**
-     * Listar caronas do usuário
-     */
-    public function listarMinhas() {
+   
+    public function listarMinhas(): void {
         $usuarioId = $_SESSION['usuario_id'];
         $caronas = $this->caronaModel->listarPorUsuario($usuarioId);
         
@@ -165,4 +158,3 @@ class CaronaController {
         require __DIR__ . '/../views/layout.php';
     }
 }
-?>
