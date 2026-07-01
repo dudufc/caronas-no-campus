@@ -4,7 +4,6 @@
  * Responsável por gerenciar ações relacionadas a usuários
  */
 
-require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../models/User.php';
 
 class UserController {
@@ -12,6 +11,17 @@ class UserController {
     
     public function __construct() {
         global $conn;
+        
+        // Garantir que a conexão exista antes de instanciar os modelos
+        if (!isset($conn)) {
+            $path = __DIR__ . '/../../config/database.php';
+            if (file_exists($path)) {
+                require_once $path;
+            } else if (file_exists(__DIR__ . '/../../config/database.php.example')) {
+                require_once __DIR__ . '/../../config/database.php.example';
+            }
+        }
+        
         $this->userModel = new User($conn);
     }
     
