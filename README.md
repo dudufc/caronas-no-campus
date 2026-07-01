@@ -11,6 +11,7 @@ Aplicação web desenvolvida em PHP que facilita o compartilhamento de caronas e
 - **Busca de Caronas** — Encontre caronas disponíveis por origem e destino
 - **Reserva de Caronas** — Reserve vagas em caronas oferecidas por outros alunos
 - **Gerenciamento de Reservas** — Visualize e cancele suas reservas
+- **Gestão de Caronas Oferecidas** — Motoristas podem visualizar, aceitar ou recusar pedidos de passageiros
 - **Perfil de Usuário** — Visualize e atualize suas informações pessoais
 
 ---
@@ -120,7 +121,12 @@ define('DB_NAME', 'caronas_campus');
 
 **Gerenciar reservas**
 1. Clique em "Minhas Reservas"
-2. Visualize ou cancele reservas
+2. Visualize ou cancele suas solicitações de passageiro
+
+**Gestão de Passageiros (Motorista)**
+1. Clique em "Minhas Caronas"
+2. Veja a lista de passageiros pendentes para cada carona oferecida
+3. Clique em "Aceitar" ou "Recusar" para gerenciar as vagas
 
 ---
 
