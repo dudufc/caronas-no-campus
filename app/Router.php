@@ -46,6 +46,10 @@ class Router {
         // Obter a URI do parâmetro 'url'
         $uri = $_GET['url'] ?? '/';
         
+        // Remover parâmetros extras da URI (como ?id=...) para bater com a rota
+        $uri = explode('&', $uri)[0];
+        $uri = explode('?', $uri)[0];
+        
         // Limpar a URI: garantir que comece com / e remover o index.php se ele vier por engano
         $uri = '/' . trim($uri, '/');
         if ($uri === '/index.php' || empty($uri)) {

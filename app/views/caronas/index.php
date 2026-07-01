@@ -53,7 +53,7 @@
                             </div>
                             <div class="card-footer bg-white">
                                 <?php if ($usuarioAutenticado): ?>
-                                    <a href="<?php echo BASE_URL; ?>detalhes-carona?id=<?php echo $carona['id']; ?>" class="btn btn-sm btn-primary">Ver Detalhes</a>
+                                    <a href="<?php echo BASE_URL; ?>detalhes-carona&id=<?php echo $carona['id']; ?>" class="btn btn-sm btn-primary">Ver Detalhes</a>
                                 <?php else: ?>
                                     <a href="<?php echo BASE_URL; ?>login" class="btn btn-sm btn-primary">Fazer Login</a>
                                 <?php endif; ?>

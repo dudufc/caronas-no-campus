@@ -64,7 +64,16 @@ class CaronaController {
      * Exibir detalhes de uma carona
      */
     public function detalhes(): void {
-        $caronaId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+        // Tentar obter o ID de várias formas para garantir compatibilidade com o Laragon
+        $caronaId = $_GET['id'] ?? null;
+        if (!$caronaId) {
+            // Se não estiver no $_GET normal, pode estar dentro da string 'url'
+            if (isset($_GET['url']) && preg_match('/id=(\d+)/', $_GET['url'], $matches)) {
+                $caronaId = $matches[1];
+            }
+        }
+        
+        $caronaId = filter_var($caronaId, FILTER_VALIDATE_INT);
         
         if (!$caronaId) {
             header('Location: ' . BASE_URL);
