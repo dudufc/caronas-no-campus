@@ -27,26 +27,26 @@
                 <ul class="navbar-nav ms-auto">
                     <?php if (isset($_SESSION['usuario_id'])): ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/oferecer-carona">Oferecer Carona</a>
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>oferecer-carona">Oferecer Carona</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/minhas-caronas">Minhas Caronas</a>
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>minhas-caronas">Minhas Caronas</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/minhas-reservas">Minhas Reservas</a>
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>minhas-reservas">Minhas Reservas</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/perfil">Perfil</a>
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>perfil">Perfil</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/logout">Sair</a>
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>logout">Sair</a>
                         </li>
                     <?php else: ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/login">Login</a>
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>login">Login</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/registro">Registrar</a>
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>registro">Registrar</a>
                         </li>
                     <?php endif; ?>
                 </ul>
