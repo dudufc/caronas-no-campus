@@ -133,5 +133,18 @@ class Carona {
         $stmt->bind_param("ii", $quantidade, $id);
         return $stmt->execute();
     }
+    
+    /**
+     * Listar caronas de um usuário (motorista)
+     */
+    public function listarPorUsuario($usuario_id) {
+        $query = "SELECT c.* FROM " . $this->table . " c
+                  WHERE c.usuario_id = ?
+                  ORDER BY c.data_saida DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("i", $usuario_id);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
 }
 ?>

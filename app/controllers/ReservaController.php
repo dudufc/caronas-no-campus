@@ -89,6 +89,115 @@ class ReservaController {
     }
     
     /**
+     * Aceitar uma reserva pendente (apenas o motorista pode fazer isso)
+     */
+    public function aceitar() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ' . BASE_URL . 'minhas-caronas');
+            exit;
+        }
+        
+        $reservaId = $_POST['id'] ?? null;
+        $usuarioId = $_SESSION['usuario_id'];
+        
+        if (!$reservaId) {
+            $_SESSION['mensagem'] = 'ID da reserva inválido';
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL . 'minhas-caronas');
+            exit;
+        }
+        
+        // Obter detalhes da reserva
+        $reserva = $this->reservaModel->buscarPorId($reservaId);
+        
+        if (!$reserva) {
+            $_SESSION['mensagem'] = 'Reserva não encontrada';
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL . 'minhas-caronas');
+            exit;
+        }
+        
+        // Verificar se a carona pertence ao usuário logado
+        $carona = $this->caronaModel->buscarPorId($reserva['carona_id']);
+        if ($carona['usuario_id'] != $usuarioId) {
+            $_SESSION['mensagem'] = 'Você não tem permissão para aceitar esta reserva';
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL . 'minhas-caronas');
+            exit;
+        }
+        
+        // Aceitar reserva
+        if ($this->reservaModel->atualizarStatus($reservaId, 'confirmada')) {
+            $_SESSION['mensagem'] = 'Reserva aceita com sucesso!';
+            $_SESSION['tipo_mensagem'] = 'success';
+        } else {
+            $_SESSION['mensagem'] = 'Erro ao aceitar reserva';
+            $_SESSION['tipo_mensagem'] = 'danger';
+        }
+        
+        header('Location: ' . BASE_URL . 'minhas-caronas');
+        exit;
+    }
+    
+    /**
+     * Recusar uma reserva pendente (apenas o motorista pode fazer isso)
+     */
+    public function recusar() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ' . BASE_URL . 'minhas-caronas');
+            exit;
+        }
+        
+        $reservaId = $_POST['id'] ?? null;
+        $usuarioId = $_SESSION['usuario_id'];
+        
+        if (!$reservaId) {
+            $_SESSION['mensagem'] = 'ID da reserva inválido';
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL . 'minhas-caronas');
+            exit;
+        }
+        
+        // Obter detalhes da reserva
+        $reserva = $this->reservaModel->buscarPorId($reservaId);
+        
+        if (!$reserva) {
+            $_SESSION['mensagem'] = 'Reserva não encontrada';
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL . 'minhas-caronas');
+            exit;
+        }
+        
+        // Verificar se a carona pertence ao usuário logado
+        $carona = $this->caronaModel->buscarPorId($reserva['carona_id']);
+        if ($carona['usuario_id'] != $usuarioId) {
+            $_SESSION['mensagem'] = 'Você não tem permissão para recusar esta reserva';
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL . 'minhas-caronas');
+            exit;
+        }
+        
+        // Recusar reserva (deletar)
+        if ($this->reservaModel->cancelar($reservaId)) {
+            // Aumentar vagas disponíveis
+            $query = "UPDATE caronas SET vagas_disponiveis = vagas_disponiveis + 1 WHERE id = ?";
+            global $conn;
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("i", $reserva['carona_id']);
+            $stmt->execute();
+            
+            $_SESSION['mensagem'] = 'Reserva recusada com sucesso';
+            $_SESSION['tipo_mensagem'] = 'success';
+        } else {
+            $_SESSION['mensagem'] = 'Erro ao recusar reserva';
+            $_SESSION['tipo_mensagem'] = 'danger';
+        }
+        
+        header('Location: ' . BASE_URL . 'minhas-caronas');
+        exit;
+    }
+    
+    /**
      * Criar nova reserva
      */
     public function criar() {

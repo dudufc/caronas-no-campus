@@ -4,14 +4,18 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../models/Carona.php';
 require_once __DIR__ . '/../models/User.php';
 
+require_once __DIR__ . '/../models/Reserva.php';
+
 class CaronaController {
     private Carona $caronaModel;
     private User $userModel;
+    private Reserva $reservaModel;
     
     public function __construct() {
         global $conn;
         $this->caronaModel = new Carona($conn);
         $this->userModel = new User($conn);
+        $this->reservaModel = new Reserva($conn);
     }
     
     

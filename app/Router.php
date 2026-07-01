@@ -27,9 +27,12 @@ class Router {
         // Rotas autenticadas
         $this->routes['GET']['/oferecer-carona'] = ['controller' => 'CaronaController', 'action' => 'mostrarFormulario', 'auth' => true];
         $this->routes['POST']['/oferecer-carona'] = ['controller' => 'CaronaController', 'action' => 'criar', 'auth' => true];
+        $this->routes['GET']['/minhas-caronas'] = ['controller' => 'CaronaController', 'action' => 'listarMinhas', 'auth' => true];
         $this->routes['GET']['/minhas-reservas'] = ['controller' => 'ReservaController', 'action' => 'listarMinhas', 'auth' => true];
         $this->routes['POST']['/cancelar-reserva'] = ['controller' => 'ReservaController', 'action' => 'cancelar', 'auth' => true];
         $this->routes['POST']['/criar-reserva'] = ['controller' => 'ReservaController', 'action' => 'criar', 'auth' => true];
+        $this->routes['POST']['/aceitar-reserva'] = ['controller' => 'ReservaController', 'action' => 'aceitar', 'auth' => true];
+        $this->routes['POST']['/recusar-reserva'] = ['controller' => 'ReservaController', 'action' => 'recusar', 'auth' => true];
         $this->routes['GET']['/logout'] = ['controller' => 'UserController', 'action' => 'logout', 'auth' => true];
         $this->routes['GET']['/perfil'] = ['controller' => 'UserController', 'action' => 'mostrarPerfil', 'auth' => true];
     }

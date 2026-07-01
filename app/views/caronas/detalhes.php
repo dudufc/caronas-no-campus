@@ -32,7 +32,15 @@
                         </div>
                     <?php endif; ?>
                     
-                    <?php if ($carona['vagas_disponiveis'] > 0): ?>
+                    <?php 
+                        $usuarioEhMotorista = isset($_SESSION['usuario_id']) && $_SESSION['usuario_id'] == $carona['usuario_id'];
+                    ?>
+                    
+                    <?php if ($usuarioEhMotorista): ?>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Esta é sua carona. Você pode gerenciar os pedidos de reserva em <a href="<?php echo BASE_URL; ?>minhas-caronas">Minhas Caronas</a>.
+                        </div>
+                    <?php elseif ($carona['vagas_disponiveis'] > 0): ?>
                         <form method="POST" action="<?php echo BASE_URL; ?>criar-reserva">
                             <input type="hidden" name="carona_id" value="<?php echo $carona['id']; ?>">
                             <button type="submit" class="btn btn-lg btn-success">

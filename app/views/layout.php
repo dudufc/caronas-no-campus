@@ -30,6 +30,9 @@
                             <a class="nav-link" href="<?php echo BASE_URL; ?>/oferecer-carona">Oferecer Carona</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>/minhas-caronas">Minhas Caronas</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="<?php echo BASE_URL; ?>/minhas-reservas">Minhas Reservas</a>
                         </li>
                         <li class="nav-item">
