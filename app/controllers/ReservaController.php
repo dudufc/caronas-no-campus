@@ -4,7 +4,13 @@
  * Responsável por gerenciar ações relacionadas a reservas de caronas
  */
 
-require_once __DIR__ . '/../../config/database.php';
+// Tentar carregar a configuração do banco de dados
+if (file_exists(__DIR__ . '/../../config/database.php')) {
+    require_once __DIR__ . '/../../config/database.php';
+} else if (file_exists(__DIR__ . '/../../config/database.php.example')) {
+    // Fallback amigável para o arquivo de exemplo se o real não existir
+    require_once __DIR__ . '/../../config/database.php.example';
+}
 require_once __DIR__ . '/../models/Reserva.php';
 require_once __DIR__ . '/../models/Carona.php';
 
