@@ -4,13 +4,7 @@
  * Responsável por gerenciar ações relacionadas a reservas de caronas
  */
 
-// Tentar carregar a configuração do banco de dados
-if (file_exists(__DIR__ . '/../../config/database.php')) {
-    require_once __DIR__ . '/../../config/database.php';
-} else if (file_exists(__DIR__ . '/../../config/database.php.example')) {
-    // Fallback amigável para o arquivo de exemplo se o real não existir
-    require_once __DIR__ . '/../../config/database.php.example';
-}
+// Removido require redundante do banco de dados
 require_once __DIR__ . '/../models/Reserva.php';
 require_once __DIR__ . '/../models/Carona.php';
 
@@ -20,6 +14,17 @@ class ReservaController {
     
     public function __construct() {
         global $conn;
+        
+        // Garantir que a conexão exista antes de instanciar os modelos
+        if (!isset($conn)) {
+            $path = __DIR__ . '/../../config/database.php';
+            if (file_exists($path)) {
+                require_once $path;
+            } else {
+                require_once __DIR__ . '/../../config/database.php.example';
+            }
+        }
+        
         $this->reservaModel = new Reserva($conn);
         $this->caronaModel = new Carona($conn);
     }
