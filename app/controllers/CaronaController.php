@@ -117,7 +117,11 @@ class CaronaController {
         
         $dataSaida->setTime(0, 0, 0);
         
-        if ($dataSaida < $dataAtual) {
+        // Permitir a data de hoje e datas futuras
+        $dataAtualMenos1 = clone $dataAtual;
+        $dataAtualMenos1->modify('-1 day');
+        
+        if ($dataSaida <= $dataAtualMenos1) {
             $_SESSION['mensagem'] = 'A data não pode ser no passado';
             $_SESSION['tipo_mensagem'] = 'danger';
             header('Location: ' . BASE_URL . 'oferecer-carona');
