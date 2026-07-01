@@ -224,6 +224,14 @@ class ReservaController {
             header('Location: ' . BASE_URL);
             exit;
         }
+
+        // Impedir que o motorista reserve sua própria carona
+        if ($carona['usuario_id'] == $usuarioId) {
+            $_SESSION['mensagem'] = 'Você não pode reservar sua própria carona';
+            $_SESSION['tipo_mensagem'] = 'danger';
+            header('Location: ' . BASE_URL . 'detalhes-carona?id=' . $caronaId);
+            exit;
+        }
         
         if ($carona['vagas_disponiveis'] <= 0) {
             $_SESSION['mensagem'] = 'Não há vagas disponíveis';

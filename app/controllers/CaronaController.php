@@ -49,7 +49,9 @@ class CaronaController {
         require __DIR__ . '/../views/layout.php';
     }
     
-  /
+    /**
+     * Exibir detalhes de uma carona
+     */
     public function detalhes(): void {
         $caronaId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
         
@@ -103,26 +105,10 @@ class CaronaController {
             exit;
         }
         
-        // Validar formato e data retroativa com prevenção de erro fatal
-        $dataAtual = new DateTime();
-        $dataAtual->setTime(0, 0, 0); // Zera a hora para comparar apenas o dia
-        $dataSaida = DateTime::createFromFormat('Y-m-d', $data_saida);
-        
-        if (!$dataSaida) {
-            $_SESSION['mensagem'] = 'Formato de data inválido';
-            $_SESSION['tipo_mensagem'] = 'danger';
-            header('Location: ' . BASE_URL . 'oferecer-carona');
-            exit;
-        }
-        
-        $dataSaida->setTime(0, 0, 0);
-        
-        // Permitir a data de hoje e datas futuras
-        $dataAtualMenos1 = clone $dataAtual;
-        $dataAtualMenos1->modify('-1 day');
-        
-        if ($dataSaida <= $dataAtualMenos1) {
-            $_SESSION['mensagem'] = 'A data não pode ser no passado';
+        // Validar data: permitir hoje e futuro
+        $hoje = date('Y-m-d');
+        if ($data_saida < $hoje) {
+            $_SESSION['mensagem'] = 'A data não pode ser no passado. Hoje é ' . date('d/m/Y');
             $_SESSION['tipo_mensagem'] = 'danger';
             header('Location: ' . BASE_URL . 'oferecer-carona');
             exit;

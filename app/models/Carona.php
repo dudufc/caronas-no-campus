@@ -39,12 +39,18 @@ class Carona {
      * Listar todas as caronas disponíveis
      */
     public function listar() {
+        // Listar caronas futuras (incluindo hoje) que tenham vagas ou pertençam ao usuário logado
+        // Para simplificar e garantir que todos vejam, vamos listar todas as caronas futuras
+        $hoje = date('Y-m-d');
         $query = "SELECT c.*, u.nome as motorista, u.telefone FROM " . $this->table . " c
                   JOIN usuarios u ON c.usuario_id = u.id
-                  WHERE c.vagas_disponiveis > 0
-                  ORDER BY c.data_saida DESC";
-        $result = $this->conn->query($query);
-        return $result->fetch_all(MYSQLI_ASSOC);
+                  WHERE c.data_saida >= ?
+                  ORDER BY c.data_saida ASC, c.hora_saida ASC";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("s", $hoje);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
     
     /**
