@@ -1,155 +1,156 @@
 <?php
+/**
+ * Modelo de Carona
+ * Responsável por operações relacionadas a caronas no banco de dados
+ */
 
-declare(strict_types=1);
-
-
-class Reserva 
-{
-    private mysqli $conn;
-    private string $table = 'reservas';
+class Carona {
+    private $conn;
+    private $table = 'caronas';
     
-    public ?int $id = null;
-    public ?int $carona_id = null;
-    public ?int $usuario_id = null;
-    public ?string $status = null;
-    public ?string $data_reserva = null;
+    public $id;
+    public $usuario_id;
+    public $origem;
+    public $destino;
+    public $data_saida;
+    public $hora_saida;
+    public $vagas_disponiveis;
+    public $descricao;
+    public $data_criacao;
     
-    public function __construct(mysqli $db) 
-    {
+    public function __construct($db) {
         $this->conn = $db;
     }
     
- 
-    public function buscarPorId(int $id): ?array 
-    {
-        $query = "
-            SELECT r.*, c.origem, c.destino, c.data_saida, c.hora_saida, u.nome AS passageiro 
-            FROM {$this->table} r
-            JOIN caronas c ON r.carona_id = c.id
-            JOIN usuarios u ON r.usuario_id = u.id
-            WHERE r.id = ?
-        ";
-        
-        $stmt = $this->prepararQuery($query);
+    /**
+     * Buscar carona por ID
+     */
+    public function buscarPorId($id) {
+        $query = "SELECT c.*, u.nome as motorista, u.telefone FROM " . $this->table . " c
+                  JOIN usuarios u ON c.usuario_id = u.id
+                  WHERE c.id = ?";
+        $stmt = $this->conn->prepare($query);
         $stmt->bind_param("i", $id);
         $stmt->execute();
-        
-        $resultado = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-        
-        return $resultado ?: null;
+        return $stmt->get_result()->fetch_assoc();
     }
     
-  
-    public function listarPorUsuario(int $usuario_id): array 
-    {
-        $query = "
-            SELECT r.*, c.origem, c.destino, c.data_saida, c.hora_saida, u.nome AS motorista 
-            FROM {$this->table} r
-            JOIN caronas c ON r.carona_id = c.id
-            JOIN usuarios u ON c.usuario_id = u.id
-            WHERE r.usuario_id = ?
-            ORDER BY c.data_saida DESC
-        ";
+    /**
+     * Listar todas as caronas disponíveis
+     */
+    public function listar() {
+        // Listar caronas futuras (incluindo hoje) que tenham vagas ou pertençam ao usuário logado
+        // Para simplificar e garantir que todos vejam, vamos listar todas as caronas futuras
+        $hoje = date('Y-m-d');
+        $query = "SELECT c.*, u.nome as motorista, u.telefone FROM " . $this->table . " c
+                  JOIN usuarios u ON c.usuario_id = u.id
+                  WHERE c.data_saida >= ?
+                  ORDER BY c.data_saida ASC, c.hora_saida ASC";
         
-        $stmt = $this->prepararQuery($query);
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("s", $hoje);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+    
+    /**
+     * Buscar caronas por origem e destino
+     */
+    public function buscar($origem, $destino) {
+        $query = "SELECT c.*, u.nome as motorista, u.telefone FROM " . $this->table . " c
+                  JOIN usuarios u ON c.usuario_id = u.id
+                  WHERE (c.origem LIKE ? OR c.destino LIKE ?)
+                  AND c.vagas_disponiveis > 0
+                  ORDER BY c.data_saida DESC";
+        
+        $param = "%" . $origem . "%";
+        $param2 = "%" . $destino . "%";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("ss", $param, $param2);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+    
+    /**
+     * Criar nova carona
+     */
+    public function criar() {
+        $query = "INSERT INTO " . $this->table . " 
+                  (usuario_id, origem, destino, data_saida, hora_saida, vagas_disponiveis, descricao, data_criacao) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("issssss", 
+            $this->usuario_id, 
+            $this->origem, 
+            $this->destino, 
+            $this->data_saida,
+            $this->hora_saida,
+            $this->vagas_disponiveis,
+            $this->descricao
+        );
+        
+        return $stmt->execute();
+    }
+    
+    /**
+     * Atualizar carona
+     */
+    public function atualizar() {
+        $query = "UPDATE " . $this->table . " 
+                  SET origem = ?, destino = ?, data_saida = ?, hora_saida = ?, 
+                      vagas_disponiveis = ?, descricao = ? 
+                  WHERE id = ?";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("ssssssi", 
+            $this->origem, 
+            $this->destino, 
+            $this->data_saida,
+            $this->hora_saida,
+            $this->vagas_disponiveis,
+            $this->descricao,
+            $this->id
+        );
+        
+        return $stmt->execute();
+    }
+    
+    /**
+     * Deletar carona
+     */
+    public function deletar($id) {
+        $query = "DELETE FROM " . $this->table . " WHERE id = ?";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("i", $id);
+        return $stmt->execute();
+    }
+    
+    /**
+     * Reduzir vagas disponíveis
+     */
+    public function reduzirVagas($id, $quantidade = 1) {
+        $query = "UPDATE " . $this->table . " 
+                  SET vagas_disponiveis = vagas_disponiveis - ? 
+                  WHERE id = ? AND vagas_disponiveis > 0";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("ii", $quantidade, $id);
+        return $stmt->execute();
+    }
+    
+    /**
+     * Listar caronas de um usuário (motorista)
+     */
+    public function listarPorUsuario($usuario_id) {
+        $query = "SELECT c.* FROM " . $this->table . " c
+                  WHERE c.usuario_id = ?
+                  ORDER BY c.data_saida DESC";
+        $stmt = $this->conn->prepare($query);
         $stmt->bind_param("i", $usuario_id);
         $stmt->execute();
-        
-        $resultado = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
-        
-        return $resultado;
-    }
-    
-   
-    public function listarPorCarona(int $carona_id): array 
-    {
-        $query = "
-            SELECT r.*, u.nome AS passageiro, u.telefone 
-            FROM {$this->table} r
-            JOIN usuarios u ON r.usuario_id = u.id
-            WHERE r.carona_id = ?
-            ORDER BY r.data_reserva DESC
-        ";
-        
-        $stmt = $this->prepararQuery($query);
-        $stmt->bind_param("i", $carona_id);
-        $stmt->execute();
-        
-        $resultado = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
-        
-        return $resultado;
-    }
-    
-
-    public function criar(): bool 
-    {
-        $query = "
-            INSERT INTO {$this->table} (carona_id, usuario_id, status, data_reserva) 
-            VALUES (?, ?, 'pendente', NOW())
-        ";
-        
-        $stmt = $this->prepararQuery($query);
-        $stmt->bind_param("ii", $this->carona_id, $this->usuario_id);
-        
-        $sucesso = $stmt->execute();
-        $stmt->close();
-        
-        return $sucesso;
-    }
-    
-
-    public function atualizarStatus(int $id, string $status): bool 
-    {
-        $query = "UPDATE {$this->table} SET status = ? WHERE id = ?";
-        
-        $stmt = $this->prepararQuery($query);
-        $stmt->bind_param("si", $status, $id);
-        
-        $sucesso = $stmt->execute();
-        $stmt->close();
-        
-        return $sucesso;
-    }
-    
-
-    public function cancelar(int $id): bool 
-    {
-        $query = "DELETE FROM {$this->table} WHERE id = ?";
-        
-        $stmt = $this->prepararQuery($query);
-        $stmt->bind_param("i", $id);
-        
-        $sucesso = $stmt->execute();
-        $stmt->close();
-        
-        return $sucesso;
-    }
-    
-
-    public function verificarReservaExistente(int $carona_id, int $usuario_id): bool 
-    {
-        $query = "SELECT id FROM {$this->table} WHERE carona_id = ? AND usuario_id = ?";
-        
-        $stmt = $this->prepararQuery($query);
-        $stmt->bind_param("ii", $carona_id, $usuario_id);
-        $stmt->execute();
-        
-        $resultado = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-        
-        return !empty($resultado);
-    }
-
-  
-    private function prepararQuery(string $query): mysqli_stmt 
-    {
-        $stmt = $this->conn->prepare($query);
-        if (!$stmt) {
-            throw new RuntimeException("Erro ao preparar a query SQL: " . $this->conn->error);
-        }
-        return $stmt;
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 }
+?>
